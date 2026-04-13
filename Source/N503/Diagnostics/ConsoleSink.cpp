@@ -1,10 +1,9 @@
-﻿#include "Pch.hpp"
+#include "Pch.hpp"
 #include <N503/Diagnostics/ConsoleSink.hpp>
 #include <N503/Diagnostics/Entry.hpp>
-#include <N503/Diagnostics/Severity.hpp>
-#include <N503/Diagnostics/Sink.hpp>
 #include <iostream>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace N503::Diagnostics
@@ -29,12 +28,18 @@ namespace N503::Diagnostics
 
     auto ConsoleSink::Report(std::vector<Entry> entries) -> void
     {
+        // 1. 基底クラスのメモリ保持ロジックを呼び出す
         Sink::Report(entries);
 
+        // 2. 標準出力へ整形して表示
         for (const auto& entry : entries)
         {
             std::ostream& out = (entry.Severity == Severity::Error) ? std::cerr : std::cout;
-            out << SeverityToLabel(entry.Severity) << " Pos: " << entry.Position << " | Expected: " << (entry.Expected.empty() ? "(none)" : entry.Expected) << std::endl;
+
+            out << SeverityToLabel(entry.Severity) << " "
+                << "Pos: " << entry.Position << " | "
+                << "Expected: " << (entry.Expected.empty() ? "(none)" : entry.Expected) << std::endl;
         }
     }
+
 } // namespace N503::Diagnostics

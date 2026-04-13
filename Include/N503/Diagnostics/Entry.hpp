@@ -2,8 +2,8 @@
 
 #include <N503/Diagnostics/Severity.hpp>
 #include <cstddef>
-#include <string_view>
 #include <string>
+#include <string_view>
 
 namespace N503::Diagnostics
 {
