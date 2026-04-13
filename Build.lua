@@ -1,5 +1,5 @@
 project "N503.CppWin32.Diagnostics"
-    kind          "Utility" -- ConsoleApp WindowedApp SharedLib StaticLib
+    kind          "StaticLib" -- ConsoleApp WindowedApp SharedLib StaticLib
     language      "C++"
     cppdialect    "C++20"
     staticruntime "off"
@@ -20,17 +20,17 @@ project "N503.CppWin32.Diagnostics"
 
     nuget
     {
-        -- "Microsoft.Windows.ImplementationLibrary:<verion here...>",
+        "Microsoft.Windows.ImplementationLibrary:1.0.260126.7",
     }
 
     files
     {
-        "Include/**.hpp",
+        "Include/**.hpp", "Source/**.cpp", "Source/**.hpp",
     }
 
     includedirs
     {
-        "Include",
+        "Include", "Source",
     }
 
     links

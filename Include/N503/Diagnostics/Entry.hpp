@@ -3,6 +3,7 @@
 #include <N503/Diagnostics/Severity.hpp>
 #include <cstddef>
 #include <string_view>
+#include <string>
 
 namespace N503::Diagnostics
 {
@@ -18,7 +19,7 @@ namespace N503::Diagnostics
         std::size_t Position;
 
         /// @brief その位置で期待されていたトークンや要素の説明。
-        std::string_view Expected;
+        std::string Expected;
     };
 
 } // namespace N503::Diagnostics
