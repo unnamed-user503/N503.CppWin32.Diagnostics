@@ -1,63 +1,74 @@
 ﻿#include "Pch.hpp"
-#include <N503/Diagnostics/Entry.hpp>
 #include <N503/Diagnostics/FileSink.hpp>
-#include <N503/Diagnostics/Severity.hpp>
-#include <N503/Diagnostics/Sink.hpp>
+#include <string_view>
+#include <wil/result_macros.h>
 #include <Windows.h>
 #include <string>
-#include <string_view>
 #include <vector>
-#include <wil/result_macros.h>
+#include <N503/Diagnostics/Entry.hpp>
+#include <N503/Diagnostics/Severity.hpp>
+#include <N503/Diagnostics/Sink.hpp>
 
 namespace N503::Diagnostics
 {
+
     namespace
     {
+        /// @brief UTF-8エンコードされた文字列をWindows API（WideChar）形式の文字列に変換します。
+        /// @param utf8 変換元のUTF-8文字列。
+        /// @return 変換後のWide文字列。失敗した場合は空の文字列を返します。
         auto TranscodeUtf8ToWide(const std::string_view& utf8) -> std::wstring
         {
             if (utf8.empty())
+            {
                 return {};
-            int desired = ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), static_cast<int>(utf8.length()), nullptr, 0);
+            }
+
+            int desired = ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), -1, nullptr, 0);
             if (desired == 0)
+            {
                 return {};
+            }
+
             std::wstring result(desired, 0);
-            ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), static_cast<int>(utf8.length()), &result[0], desired);
+            ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), -1, &result[0], desired);
+
+            result.resize(desired - 1);
             return result;
         }
+    }
 
-        auto SeverityToString(Severity severity) -> std::string_view
-        {
-            switch (severity)
-            {
-            case Severity::Info:
-                return "INFO";
-            case Severity::Warning:
-                return "WARNING";
-            case Severity::Error:
-                return "ERROR";
-            default:
-                return "UNKNOWN";
-            }
-        }
-    } // namespace
-
+    /// @param path 出力先ファイルパス。
     FileSink::FileSink(const std::string& path)
     {
-        m_Handle.reset(::CreateFileW(TranscodeUtf8ToWide(path).c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr));
+        /// @note 書き込み(FILE_APPEND_DATA)と同期(SYNCHRONIZE)権限を指定し、ファイルを開くか新規作成します。
+        m_Handle.reset(::CreateFileW(
+            TranscodeUtf8ToWide(path).c_str(),
+            FILE_APPEND_DATA | SYNCHRONIZE, // 追記権限と同期フラグを指定
+            FILE_SHARE_READ,
+            nullptr,
+            OPEN_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            nullptr));
+            
+        /// @note ハンドルの取得に失敗した場合は例外をスローします。
         THROW_LAST_ERROR_IF(!m_Handle);
     }
 
+    /// @param entries 書き込み対象の診断エントリのリスト。
     auto FileSink::Report(std::vector<Entry> entries) -> void
     {
+        /// @note 基底クラスのメモリ保持ロジックを呼び出し、エントリを蓄積します。
         Sink::Report(entries);
 
         for (const auto& entry : entries)
         {
-            std::string line = "[" + std::string(SeverityToString(entry.Severity)) + "] ";
-            line += "Position: " + std::to_string(entry.Position) + ", ";
-            line += "Expected: '" + entry.Expected + "'\r\n";
+            /// @note Entry::ToString() を使用して、ConsoleSinkと共通のフォーマットで文字列を生成します。
+            /// @note Windows標準の改行コード(CRLF)を付加します。
+            auto line = entry.ToString() + "\r\n";
 
             DWORD bytesWritten = 0;
+            /// @note ファイルハンドルの現在位置（末尾）にデータを書き込みます。
             ::WriteFile(m_Handle.get(), line.data(), static_cast<DWORD>(line.size()), &bytesWritten, nullptr);
         }
     }

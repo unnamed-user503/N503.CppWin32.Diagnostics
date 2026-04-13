@@ -9,32 +9,21 @@
 
 namespace N503::Diagnostics
 {
-    namespace
-    {
-        auto SeverityToLabel(Severity severity) -> std::string_view
-        {
-            switch (severity)
-            {
-            case Severity::Info:
-                return "[INFO]";
-            case Severity::Warning:
-                return "[WARNING]";
-            case Severity::Error:
-                return "[ERROR]";
-            default:
-                return "[UNKNOWN]";
-            }
-        }
-    } // namespace
 
+    /// @param entries 出力対象の診断エントリのリスト。
     auto ConsoleSink::Report(std::vector<Entry> entries) -> void
     {
+        /// @note 基底クラスのメモリ保持ロジックを呼び出し、エントリを蓄積します。
         Sink::Report(entries);
 
         for (const auto& entry : entries)
         {
-            std::ostream& out = (entry.Severity == Severity::Error) ? std::cerr : std::cout;
-            out << SeverityToLabel(entry.Severity) << " Pos: " << entry.Position << " | Expected: " << (entry.Expected.empty() ? "(none)" : entry.Expected) << std::endl;
+            /// @note 重要度が Error の場合は標準エラー出力(std::cerr)を選択し、それ以外は標準出力(std::cout)を選択します。
+            auto& outputStream = (entry.Severity == Diagnostics::Severity::Error) ? std::cerr : std::cout;
+
+            /// @note Entry::ToString() を使用して、統一されたフォーマットでコンソールに出力します。
+            outputStream << entry.ToString() << std::endl;
         }
     }
+
 } // namespace N503::Diagnostics
