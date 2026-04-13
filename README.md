@@ -6,8 +6,10 @@
 // 準備
 auto reporter = std::make_unique<Diagnostics::Reporter>();
 auto console  = std::make_shared<Diagnostics::ConsoleSink>();
+auto file     = std::make_shared<Diagnostics::FileSink>("log.txt");
 
 reporter->AddSink(console);
+reporter->AddSink(file);
 
 // 実行時
 Diagnostics::Sink tempSink;
