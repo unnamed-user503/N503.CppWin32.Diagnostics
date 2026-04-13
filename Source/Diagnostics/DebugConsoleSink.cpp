@@ -47,7 +47,7 @@ namespace N503::Diagnostics
         for (const auto& entry : entries)
         {
             /// @note Entry::ToString() を使用して、統一されたフォーマットでデバッグコンソールに出力します。
-            ::OutputDebugStringW(TranscodeUtf8ToWide(entry.ToString()).data());
+            ::OutputDebugStringW(TranscodeUtf8ToWide(entry.ToString() + "\r\n").data());
         }
     }
 

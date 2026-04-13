@@ -39,11 +39,10 @@ namespace N503::Diagnostics
 
             std::string result = "[";
             result += SeverityToString(Severity);
-            result += "] Pos: ";
+            result += " (Line: ";
             result += std::to_string(Position);
-            result += " | Expected: '";
+            result += ")] : ";
             result += Expected.empty() ? "(none)" : Expected;
-            result += "'";
             return result;
         }
     };
