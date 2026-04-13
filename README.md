@@ -11,7 +11,7 @@ reporter->AddSink(console);
 
 // 実行時
 Diagnostics::Sink tempSink;
-tempSink.AddEntry({ Diagnostics::Severity::Error, 10, "Expected ';'" });
+tempSink.AddEntry({ Diagnostics::Severity::Error, "Expected ';'", 10 });
 
 // Reporterに投げれば、別スレッドでコンソールとファイルの両方に出力される
 reporter->Submit(tempSink);
