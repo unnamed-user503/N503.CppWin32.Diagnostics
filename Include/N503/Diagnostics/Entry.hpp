@@ -13,13 +13,13 @@ namespace N503::Diagnostics
     {
 
         /// @brief 診断情報の重要度（Info, Warning, Error）。
-        Diagnostics::Severity Severity;
+        Diagnostics::Severity Severity{ Severity::Info };
 
         /// @brief 期待されていた値や、発生した事象に関する説明文字列。
-        std::string Expected;
+        std::string Expected{ "" };
 
         /// @brief 診断情報が発生したソースコード上の位置（オフセット）。
-        std::size_t Position;
+        std::size_t Position{ 0 };
 
         /// @brief エントリの内容を、各Sink共通のフォーマット済み文字列に変換します。
         /// @return 統一された形式の診断メッセージ文字列。
@@ -39,10 +39,17 @@ namespace N503::Diagnostics
 
             std::string result = "[";
             result += SeverityToString(Severity);
-            result += " (Line: ";
-            result += std::to_string(Position);
-            result += ")] : ";
+
+            if (0 < Position)
+            {
+                result += "(Line: ";
+                result += std::to_string(Position);
+                result += ")";
+            }
+
+            result += "] : ";
             result += Expected.empty() ? "(none)" : Expected;
+
             return result;
         }
     };

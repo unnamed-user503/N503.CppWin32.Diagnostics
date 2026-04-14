@@ -2,6 +2,7 @@
 
 #include <N503/Diagnostics/Entry.hpp>
 #include <vector>
+#include <string_view>
 
 namespace N503::Diagnostics
 {
@@ -16,6 +17,10 @@ namespace N503::Diagnostics
         /// @brief 単一の診断エントリを追加します。
         /// @param entry 追加する診断エントリ。
         virtual auto AddEntry(const Entry& entry) -> void;
+
+        /// @brief 発生した事象に関する説明文字列のみ引数として受け取る(重大度はInfo固定)
+        /// @param expected 診断エントリ。
+        virtual auto AddEntry(std::string_view expected) -> void;
 
         /// @brief 複数の診断エントリを一括で報告（追加）します。
         /// @param entries 追加する診断エントリのリスト。

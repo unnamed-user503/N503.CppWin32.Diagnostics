@@ -6,6 +6,7 @@
 #include <iterator>
 #include <utility>
 #include <vector>
+#include <string_view>
 
 namespace N503::Diagnostics
 {
@@ -14,6 +15,12 @@ namespace N503::Diagnostics
     auto Sink::AddEntry(const Entry& entry) -> void
     {
         m_Entries.push_back(entry);
+    }
+
+    /// @brief 発生した事象に関する説明文字列のみ引数として受け取る
+    auto Sink::AddEntry(std::string_view expected) -> void
+    {
+        AddEntry({ Severity::Info, expected.data(), 0 });
     }
 
     /// @param entries 追加（報告）する診断エントリのリスト。
