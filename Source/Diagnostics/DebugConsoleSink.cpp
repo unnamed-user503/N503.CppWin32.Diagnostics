@@ -1,4 +1,4 @@
-﻿#include "Pch.hpp"
+#include "Pch.hpp"
 #include <N503/Diagnostics/DebugConsoleSink.hpp>
 #include <N503/Diagnostics/Entry.hpp>
 #include <N503/Diagnostics/Severity.hpp>

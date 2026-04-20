@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <N503/Diagnostics/Severity.hpp>
 #include <cstddef>
