@@ -20,7 +20,7 @@ namespace N503::Diagnostics
         Reporter();
 
         /// @brief デストラクタ。
-        ~Reporter() = default;
+        ~Reporter();
 
         /// @brief コピーコンストラクタ禁止。
         Reporter(const Reporter&) = delete;
@@ -42,9 +42,6 @@ namespace N503::Diagnostics
         void Run(std::stop_token stopToken);
 
     private:
-        /// @brief 非同期処理を実行するスレッド。
-        std::jthread m_Thread;
-
         /// @brief スレッドの待機と通知を制御する条件変数。
         std::condition_variable_any m_ConditionVariable;
 
@@ -59,6 +56,9 @@ namespace N503::Diagnostics
 
         /// @brief 新しいデータが準備できたことを示すフラグ。
         bool m_Ready = false;
+
+        /// @brief 非同期処理を実行するスレッド。
+        std::jthread m_Thread;
     };
 
 } // namespace N503::Diagnostics

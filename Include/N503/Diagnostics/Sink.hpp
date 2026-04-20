@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include <N503/Diagnostics/Entry.hpp>
-#include <vector>
 #include <string_view>
+#include <vector>
 
 namespace N503::Diagnostics
 {

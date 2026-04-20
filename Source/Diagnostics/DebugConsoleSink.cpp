@@ -11,7 +11,7 @@
 
 namespace N503::Diagnostics
 {
-    
+
     namespace
     {
         /// @brief UTF-8エンコードされた文字列をWindows API（WideChar）形式の文字列に変換します。
@@ -36,7 +36,7 @@ namespace N503::Diagnostics
             result.resize(desired - 1);
             return result;
         }
-    }
+    } // namespace
 
     /// @param entries 出力対象の診断エントリのリスト。
     auto DebugConsoleSink::Report(std::vector<Entry> entries) -> void

@@ -1,13 +1,13 @@
 ﻿#include "Pch.hpp"
-#include <N503/Diagnostics/FileSink.hpp>
-#include <string_view>
-#include <wil/result_macros.h>
-#include <Windows.h>
-#include <string>
-#include <vector>
 #include <N503/Diagnostics/Entry.hpp>
+#include <N503/Diagnostics/FileSink.hpp>
 #include <N503/Diagnostics/Severity.hpp>
 #include <N503/Diagnostics/Sink.hpp>
+#include <Windows.h>
+#include <string>
+#include <string_view>
+#include <vector>
+#include <wil/result_macros.h>
 
 namespace N503::Diagnostics
 {
@@ -36,21 +36,16 @@ namespace N503::Diagnostics
             result.resize(desired - 1);
             return result;
         }
-    }
+    } // namespace
 
     /// @param path 出力先ファイルパス。
     FileSink::FileSink(const std::string& path)
     {
         /// @note 書き込み(FILE_APPEND_DATA)と同期(SYNCHRONIZE)権限を指定し、ファイルを開くか新規作成します。
-        m_Handle.reset(::CreateFileW(
-            TranscodeUtf8ToWide(path).c_str(),
-            FILE_APPEND_DATA | SYNCHRONIZE, // 追記権限と同期フラグを指定
-            FILE_SHARE_READ,
-            nullptr,
-            OPEN_ALWAYS,
-            FILE_ATTRIBUTE_NORMAL,
-            nullptr));
-            
+        m_Handle.reset(::CreateFileW(TranscodeUtf8ToWide(path).c_str(),
+                                     FILE_APPEND_DATA | SYNCHRONIZE, // 追記権限と同期フラグを指定
+                                     FILE_SHARE_READ, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr));
+
         /// @note ハンドルの取得に失敗した場合は例外をスローします。
         THROW_LAST_ERROR_IF(!m_Handle);
     }

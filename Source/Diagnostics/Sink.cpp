@@ -4,9 +4,9 @@
 #include <N503/Diagnostics/Sink.hpp>
 #include <algorithm>
 #include <iterator>
+#include <string_view>
 #include <utility>
 #include <vector>
-#include <string_view>
 
 namespace N503::Diagnostics
 {
@@ -27,21 +27,17 @@ namespace N503::Diagnostics
     auto Sink::Report(std::vector<Entry> entries) -> void
     {
         /// @note 引数で渡されたエントリをムーブイテレータを使用して内部ストレージの末尾に追加します。
-        m_Entries.insert(m_Entries.end(), 
-                         std::make_move_iterator(entries.begin()), 
-                         std::make_move_iterator(entries.end()));
+        m_Entries.insert(m_Entries.end(), std::make_move_iterator(entries.begin()), std::make_move_iterator(entries.end()));
     }
 
     /// @return エラーが含まれている場合は true、それ以外は false。
     auto Sink::HasError() const -> bool
     {
         /// @note 蓄積されたエントリの中に一つでも Severity::Error があるか走査します。
-        return std::any_of(m_Entries.begin(),
-                           m_Entries.end(),
-                           [](const Entry& entry)
-                           {
-                               return entry.Severity == Severity::Error;
-                           });
+        return std::any_of(m_Entries.begin(), m_Entries.end(), [](const Entry& entry)
+        {
+            return entry.Severity == Severity::Error;
+        });
     }
 
     /// @return 内部で保持しているエントリリストへの定数参照。

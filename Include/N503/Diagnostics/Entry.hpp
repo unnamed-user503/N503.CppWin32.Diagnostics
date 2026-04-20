@@ -30,10 +30,14 @@ namespace N503::Diagnostics
             {
                 switch (severity)
                 {
-                    case Severity::Info:    return "Info";
-                    case Severity::Warning: return "Warning";
-                    case Severity::Error:   return "Error";
-                    default:                return "Unknown";
+                    case Severity::Info:
+                        return "Info";
+                    case Severity::Warning:
+                        return "Warning";
+                    case Severity::Error:
+                        return "Error";
+                    default:
+                        return "Unknown";
                 }
             };
 
