@@ -9,6 +9,7 @@
 
 namespace N503::Diagnostics
 {
+
     /// @brief 診断情報をファイルに出力するためのSinkクラスです。
     class FileSink final : public Sink
     {
@@ -28,4 +29,5 @@ namespace N503::Diagnostics
         /// @brief ファイル操作に使用するWindowsファイルハンドルのスマートポインタ。
         wil::unique_hfile m_Handle{};
     };
+
 } // namespace N503::Diagnostics
