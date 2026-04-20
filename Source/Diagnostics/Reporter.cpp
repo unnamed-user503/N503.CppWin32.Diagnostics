@@ -61,7 +61,7 @@ namespace N503::Diagnostics
     /// @param stopToken スレッド停止要求を監視するためのトークン。
     void Reporter::Run(std::stop_token stopToken)
     {
-        while (!stopToken.stop_requested())
+        while (true)
         {
             std::vector<Entry> workingEntries;
             std::vector<std::shared_ptr<Sink>> targetSinks;
