@@ -17,10 +17,7 @@ namespace N503::Diagnostics
     {
         /// @note ワーカースレッドを起動し、Runメソッドにて非同期処理を開始します。
         /// @note jthreadを使用しているため、stop_tokenが自動的に渡されます。
-        m_Thread = std::jthread([this](std::stop_token stopToken)
-        {
-            Run(stopToken);
-        });
+        m_Thread = std::jthread([this](std::stop_token stopToken) { Run(stopToken); });
     }
 
     Reporter::~Reporter()
@@ -41,7 +38,7 @@ namespace N503::Diagnostics
     }
 
     /// @param sink 診断情報が蓄積されたソースSink。
-    void Reporter::Submit(Sink& sink)
+    void Reporter::Submit(Sink &sink)
     {
         {
             /// @note キュー（m_PendingEntries）へのデータ追加を保護します。
@@ -49,7 +46,11 @@ namespace N503::Diagnostics
 
             /// @note 引数のSinkからエントリをすべて奪い、ムーブイテレータを用いて効率的に転送します。
             auto newEntries = sink.DrainEntries();
-            m_PendingEntries.insert(m_PendingEntries.end(), std::make_move_iterator(newEntries.begin()), std::make_move_iterator(newEntries.end()));
+            m_PendingEntries.insert(
+                m_PendingEntries.end(),
+                std::make_move_iterator(newEntries.begin()),
+                std::make_move_iterator(newEntries.end())
+            );
 
             /// @note データ準備完了フラグをセットします。
             m_Ready = true;
@@ -70,10 +71,7 @@ namespace N503::Diagnostics
                 std::unique_lock lock(m_Mutex);
 
                 /// @note 通知があるか停止要求が来るまでスレッドをブロックして待機します。
-                m_ConditionVariable.wait(lock, [&]
-                {
-                    return m_Ready || stopToken.stop_requested();
-                });
+                m_ConditionVariable.wait(lock, [&] { return m_Ready || stopToken.stop_requested(); });
 
                 /// @note 停止要求があり、かつ処理すべき残データがない場合にループを抜けます。
                 if (stopToken.stop_requested() && m_PendingEntries.empty())
@@ -94,7 +92,7 @@ namespace N503::Diagnostics
             }
 
             /// @note 登録されているすべてのSinkに対して、収集したエントリを配信します。
-            for (const auto& sink : targetSinks)
+            for (const auto &sink : targetSinks)
             {
                 try
                 {

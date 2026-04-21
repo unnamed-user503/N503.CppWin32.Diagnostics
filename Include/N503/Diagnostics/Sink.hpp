@@ -16,7 +16,7 @@ namespace N503::Diagnostics
 
         /// @brief 単一の診断エントリを追加します。
         /// @param entry 追加する診断エントリ。
-        virtual auto AddEntry(const Entry& entry) -> void;
+        virtual auto AddEntry(const Entry &entry) -> void;
 
         /// @brief 発生した事象に関する説明文字列のみ引数として受け取る(重大度はInfo固定)
         /// @param expected 診断エントリ。
@@ -32,7 +32,7 @@ namespace N503::Diagnostics
 
         /// @brief 現在蓄積されているすべてのエントリを取得します。
         /// @return 診断エントリのリストへの定数参照。
-        virtual auto GetEntries() const -> const std::vector<Entry>&;
+        virtual auto GetEntries() const -> const std::vector<Entry> &;
 
         /// @brief 蓄積されたエントリをすべて取り出し（ムーブし）、内部の状態を空にします。
         /// @return 取り出された診断エントリのリスト。

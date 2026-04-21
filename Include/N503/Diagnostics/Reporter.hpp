@@ -23,10 +23,10 @@ namespace N503::Diagnostics
         ~Reporter();
 
         /// @brief コピーコンストラクタ禁止。
-        Reporter(const Reporter&) = delete;
+        Reporter(const Reporter &) = delete;
 
         /// @brief コピー代入演算子禁止。
-        auto operator=(const Reporter&) -> Reporter& = delete;
+        auto operator=(const Reporter &) -> Reporter & = delete;
 
         /// @brief 診断情報の出力先となるSinkを追加します。
         /// @param sink 追加するSinkの共有ポインタ。
@@ -34,7 +34,7 @@ namespace N503::Diagnostics
 
         /// @brief 指定されたSinkからエントリを回収し、非同期処理キューへ投入します。
         /// @param sink エントリの抽出元となるSink。
-        void Submit(Sink& sink);
+        void Submit(Sink &sink);
 
     private:
         /// @brief ワーカースレッドのメインループ処理です。

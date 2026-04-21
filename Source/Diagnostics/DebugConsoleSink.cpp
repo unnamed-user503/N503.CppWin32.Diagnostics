@@ -17,7 +17,7 @@ namespace N503::Diagnostics
         /// @brief UTF-8エンコードされた文字列をWindows API（WideChar）形式の文字列に変換します。
         /// @param utf8 変換元のUTF-8文字列。
         /// @return 変換後のWide文字列。失敗した場合は空の文字列を返します。
-        auto TranscodeUtf8ToWide(const std::string_view& utf8) -> std::wstring
+        auto TranscodeUtf8ToWide(const std::string_view &utf8) -> std::wstring
         {
             if (utf8.empty())
             {
@@ -44,7 +44,7 @@ namespace N503::Diagnostics
         /// @note 基底クラスのメモリ保持ロジックを呼び出し、エントリを蓄積します。
         Sink::Report(entries);
 
-        for (const auto& entry : entries)
+        for (const auto &entry : entries)
         {
             /// @note Entry::ToString() を使用して、統一されたフォーマットでデバッグコンソールに出力します。
             ::OutputDebugStringW(TranscodeUtf8ToWide(entry.ToString() + "\r\n").data());
