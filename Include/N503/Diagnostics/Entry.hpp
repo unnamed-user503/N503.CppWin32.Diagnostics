@@ -13,7 +13,7 @@ namespace N503::Diagnostics
     {
 
         /// @brief 診断情報の重要度（Info, Warning, Error）。
-        Diagnostics::Severity Severity{ Severity::Info };
+        Diagnostics::Severity Severity{ Severity::Verbose };
 
         /// @brief 期待されていた値や、発生した事象に関する説明文字列。
         std::string Expected{ "" };
@@ -30,8 +30,8 @@ namespace N503::Diagnostics
             {
                 switch (severity)
                 {
-                    case Severity::Info:
-                        return "Info";
+                    case Severity::Verbose:
+                        return "Verbose";
                     case Severity::Warning:
                         return "Warning";
                     case Severity::Error:

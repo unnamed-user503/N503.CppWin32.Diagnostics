@@ -20,7 +20,7 @@ namespace N503::Diagnostics
     /// @brief 発生した事象に関する説明文字列のみ引数として受け取る
     auto Sink::AddEntry(std::string_view expected) -> void
     {
-        AddEntry({ Severity::Info, expected.data(), 0 });
+        AddEntry({ Severity::Verbose, expected.data(), 0 });
     }
 
     /// @param entries 追加（報告）する診断エントリのリスト。
