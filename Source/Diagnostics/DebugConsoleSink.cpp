@@ -1,10 +1,20 @@
 #include "Pch.hpp"
+
+// 1. Project Headers
+
+// 2. Project Dependencies
 #include <N503/Diagnostics/DebugConsoleSink.hpp>
 #include <N503/Diagnostics/Entry.hpp>
-#include <N503/Diagnostics/Severity.hpp>
 #include <N503/Diagnostics/Sink.hpp>
+
+// 3. WIL (Windows Implementation Library)
+
+// 4. Third-party Libraries
+
+// 5. Windows Headers
 #include <Windows.h>
-#include <iostream>
+
+// 6. C++ Standard Libraries
 #include <string>
 #include <string_view>
 #include <vector>
@@ -14,10 +24,7 @@ namespace N503::Diagnostics
 
     namespace
     {
-        /// @brief UTF-8エンコードされた文字列をWindows API（WideChar）形式の文字列に変換します。
-        /// @param utf8 変換元のUTF-8文字列。
-        /// @return 変換後のWide文字列。失敗した場合は空の文字列を返します。
-        auto TranscodeUtf8ToWide(const std::string_view &utf8) -> std::wstring
+        auto TranscodeUtf8ToWide(const std::string_view utf8) -> std::wstring
         {
             if (utf8.empty())
             {
@@ -36,17 +43,14 @@ namespace N503::Diagnostics
             result.resize(desired - 1);
             return result;
         }
-    } // namespace
+    }
 
-    /// @param entries 出力対象の診断エントリのリスト。
     auto DebugConsoleSink::Report(std::vector<Entry> entries) -> void
     {
-        /// @note 基底クラスのメモリ保持ロジックを呼び出し、エントリを蓄積します。
         Sink::Report(entries);
 
-        for (const auto &entry : entries)
+        for (const auto& entry : entries)
         {
-            /// @note Entry::ToString() を使用して、統一されたフォーマットでデバッグコンソールに出力します。
             ::OutputDebugStringW(TranscodeUtf8ToWide(entry.ToString() + "\r\n").data());
         }
     }

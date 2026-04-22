@@ -1,9 +1,22 @@
 #include "Pch.hpp"
+
+// 1. Project Headers
+
+// 2. Project Dependencies
 #include <N503/Diagnostics/Entry.hpp>
 #include <N503/Diagnostics/Severity.hpp>
 #include <N503/Diagnostics/Sink.hpp>
+
+// 3. WIL (Windows Implementation Library)
+
+// 4. Third-party Libraries
+
+// 5. Windows Headers
+
+// 6. C++ Standard Libraries
 #include <algorithm>
 #include <iterator>
+#include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -11,52 +24,39 @@
 namespace N503::Diagnostics
 {
 
-    /// @param entry 追加する診断エントリ。
-    auto Sink::AddEntry(const Entry &entry) -> void
+    auto Sink::AddEntry(const Entry& entry) -> void
     {
         m_Entries.push_back(entry);
     }
 
-    /// @brief 発生した事象に関する説明文字列のみ引数として受け取る
-    auto Sink::AddEntry(std::string_view expected) -> void
+    auto Sink::AddEntry(Diagnostics::Severity severity, std::string_view expected, std::size_t position) -> void
     {
-        AddEntry({Severity::Verbose, expected.data(), 0});
+        m_Entries.emplace_back(Entry{ severity, std::string(expected), position });
     }
 
-    /// @param entries 追加（報告）する診断エントリのリスト。
     auto Sink::Report(std::vector<Entry> entries) -> void
     {
-        /// @note 引数で渡されたエントリをムーブイテレータを使用して内部ストレージの末尾に追加します。
-        m_Entries
-            .insert(m_Entries.end(), std::make_move_iterator(entries.begin()), std::make_move_iterator(entries.end()));
+        m_Entries.insert(m_Entries.end(), std::make_move_iterator(entries.begin()), std::make_move_iterator(entries.end()));
     }
 
-    /// @return エラーが含まれている場合は true、それ以外は false。
     auto Sink::HasError() const -> bool
     {
-        /// @note 蓄積されたエントリの中に一つでも Severity::Error があるか走査します。
-        return std::any_of(
-            m_Entries.begin(), m_Entries.end(), [](const Entry &entry) { return entry.Severity == Severity::Error; }
-        );
+        return std::any_of(m_Entries.begin(), m_Entries.end(), [](const Entry& entry) { return entry.Severity == Severity::Error; });
     }
 
-    /// @return 内部で保持しているエントリリストへの定数参照。
-    auto Sink::GetEntries() const -> const std::vector<Entry> &
+    auto Sink::GetEntries() const -> const std::vector<Entry>&
     {
         return m_Entries;
     }
 
-    /// @return 取り出された診断エントリのリスト。
-    auto Sink::DrainEntries() -> std::vector<Entry>
-    {
-        /// @note std::exchange を使用して内部コンテナを空にしつつ、以前の中身を返します。
-        return std::exchange(m_Entries, {});
-    }
-
-    /// @brief 内部に保持されているエントリをすべて削除します。
     auto Sink::Clear() -> void
     {
         m_Entries.clear();
+    }
+
+    auto Sink::DrainEntries() -> std::vector<Entry>
+    {
+        return std::exchange(m_Entries, {});
     }
 
 } // namespace N503::Diagnostics
