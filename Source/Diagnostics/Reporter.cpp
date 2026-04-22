@@ -27,13 +27,13 @@ namespace N503::Diagnostics
         m_ConditionVariable.notify_all();
     }
 
-    void Reporter::AddSink(std::shared_ptr<Sink> sink)
+    auto Reporter::AddSink(std::shared_ptr<Sink> sink) -> void
     {
         std::lock_guard lock(m_Mutex);
         m_Sinks.push_back(std::move(sink));
     }
 
-    void Reporter::Submit(Sink& sink)
+    auto Reporter::Submit(Sink& sink) -> void
     {
         {
             std::lock_guard lock(m_Mutex);
@@ -46,7 +46,20 @@ namespace N503::Diagnostics
         m_ConditionVariable.notify_one();
     }
 
-    void Reporter::Run(std::stop_token stopToken)
+    auto Reporter::Stop() -> void
+    {
+        m_Thread.request_stop();
+    }
+
+    auto Reporter::Wait() -> void
+    {
+        if (m_Thread.joinable())
+        {
+            m_Thread.join();
+        }
+    }
+
+    auto Reporter::Run(std::stop_token stopToken) -> void
     {
         while (true)
         {

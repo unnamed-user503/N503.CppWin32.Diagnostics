@@ -33,12 +33,16 @@ namespace N503::Diagnostics
         auto operator=(const Reporter&) -> Reporter& = delete;
 
     public:
-        void AddSink(std::shared_ptr<Sink> sink);
+        auto AddSink(std::shared_ptr<Sink> sink) -> void;
 
-        void Submit(Sink& sink);
+        auto Submit(Sink& sink) -> void;
+
+        auto Stop() -> void;
+
+        auto Wait() -> void;
 
     private:
-        void Run(std::stop_token stopToken);
+        auto Run(std::stop_token stopToken) -> void;
 
     private:
         std::condition_variable_any m_ConditionVariable;
