@@ -22,42 +22,42 @@ namespace N503::Diagnostics
     {
         Diagnostics::Severity Severity{ Severity::Verbose };
 
-        std::string Expected{ "" };
+        std::wstring Expected{ L"" };
 
         std::size_t Position{ 0 };
 
-        auto ToString() const -> std::string
+        auto ToString() const -> std::wstring
         {
-            auto SeverityToString = [](Diagnostics::Severity severity) -> std::string_view
+            auto SeverityToString = [](Diagnostics::Severity severity) -> std::wstring_view
             {
                 switch (severity)
                 {
                     case Severity::Verbose:
-                        return "Verbose";
+                        return L"Verbose";
 
                     case Severity::Warning:
-                        return "Warning";
+                        return L"Warning";
 
                     case Severity::Error:
-                        return "Error";
+                        return L"Error";
 
                     default:
-                        return "Unknown";
+                        return L"Unknown";
                 }
             };
 
-            std::string result = "[";
-            result += SeverityToString(Severity);
+            std::wstring result  = L"[";
+            result              += SeverityToString(Severity);
 
             if (0 < Position)
             {
-                result += "(Line: ";
-                result += std::to_string(Position);
-                result += ")";
+                result += L"(Line: ";
+                result += std::to_wstring(Position);
+                result += L")";
             }
 
-            result += "] : ";
-            result += Expected.empty() ? "(none)" : Expected;
+            result += L"] : ";
+            result += Expected.empty() ? L"(none)" : Expected;
 
             return result;
         }

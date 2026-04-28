@@ -24,19 +24,108 @@
 namespace N503::Diagnostics
 {
 
+    namespace
+    {
+        auto TranscodeUtf8ToWide(const std::string_view utf8) -> std::wstring
+        {
+            if (utf8.empty())
+            {
+                return {};
+            }
+
+            int desired = ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), -1, nullptr, 0);
+            if (desired == 0)
+            {
+                return {};
+            }
+
+            std::wstring result(desired, 0);
+            ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), -1, &result[0], desired);
+
+            result.resize(desired - 1);
+            return result;
+        }
+    } // namespace
+
+    Sink::Sink()
+    {
+        m_Entries.reserve(MaxCapacity + 128);
+    }
+
     auto Sink::AddEntry(const Entry& entry) -> void
     {
+        const std::size_t limit       = MaxCapacity;
+        const std::size_t currentSize = m_Entries.size();
+
+        if (currentSize >= limit)
+        {
+            if (entry.Severity >= Severity::Error && currentSize < limit + 128)
+            {
+                m_Entries.push_back(entry);
+                return;
+            }
+
+            if (currentSize == limit && !m_Overheated)
+            {
+                m_Entries.push_back(Entry{
+                    .Severity = Severity::Warning,
+                    .Expected = L"!!! Diagnostics log buffer is full. Subsequent logs (except Errors) are being dropped. !!!",
+                    .Position = 0,
+                });
+
+                m_Overheated = true;
+            }
+
+            return;
+        }
+
         m_Entries.push_back(entry);
     }
 
     auto Sink::AddEntry(Diagnostics::Severity severity, std::string_view expected, std::size_t position) -> void
     {
-        m_Entries.emplace_back(Entry{ severity, std::string(expected), position });
+        m_Entries.emplace_back(Entry{ severity, TranscodeUtf8ToWide(expected), position });
+    }
+
+    auto Sink::Verbose(std::string_view expected) -> void
+    {
+        AddEntry(Severity::Verbose, expected, 0);
+    }
+
+    auto Sink::Warning(std::string_view expected) -> void
+    {
+        AddEntry(Severity::Warning, expected, 0);
+    }
+
+    auto Sink::Error(std::string_view expected) -> void
+    {
+        AddEntry(Severity::Error, expected, 0);
+    }
+
+    auto Sink::AddEntry(Diagnostics::Severity severity, std::wstring_view expected, std::size_t position) -> void
+    {
+        m_Entries.emplace_back(Entry{ severity, std::wstring(expected), position });
+    }
+
+    auto Sink::Verbose(std::wstring_view expected) -> void
+    {
+        AddEntry(Severity::Verbose, expected, 0);
+    }
+
+    auto Sink::Warning(std::wstring_view expected) -> void
+    {
+        AddEntry(Severity::Warning, expected, 0);
+    }
+
+    auto Sink::Error(std::wstring_view expected) -> void
+    {
+        AddEntry(Severity::Error, expected, 0);
     }
 
     auto Sink::Report(std::vector<Entry> entries) -> void
     {
-        m_Entries.insert(m_Entries.end(), std::make_move_iterator(entries.begin()), std::make_move_iterator(entries.end()));
+        m_Entries.clear();
+        m_Entries.reserve(MaxCapacity + 128);
     }
 
     auto Sink::HasError() const -> bool

@@ -43,7 +43,7 @@ namespace N503::Diagnostics
             result.resize(desired - 1);
             return result;
         }
-    }
+    } // namespace
 
     auto DebugConsoleSink::Report(std::vector<Entry> entries) -> void
     {
@@ -51,7 +51,7 @@ namespace N503::Diagnostics
 
         for (const auto& entry : entries)
         {
-            ::OutputDebugStringW(TranscodeUtf8ToWide(entry.ToString() + "\r\n").data());
+            ::OutputDebugStringW((entry.ToString() + L"\r\n").data());
         }
     }
 

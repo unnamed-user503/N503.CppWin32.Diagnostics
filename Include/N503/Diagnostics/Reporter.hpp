@@ -27,9 +27,11 @@ namespace N503::Diagnostics
     {
     public:
         Reporter();
+
         ~Reporter();
 
         Reporter(const Reporter&) = delete;
+
         auto operator=(const Reporter&) -> Reporter& = delete;
 
     public:

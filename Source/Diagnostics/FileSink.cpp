@@ -33,12 +33,12 @@ namespace N503::Diagnostics
             result.resize(desired - 1);
             return result;
         }
-    }
+    } // namespace
 
     FileSink::FileSink(const std::string& path)
     {
         m_Handle.reset(::CreateFileW(
-            TranscodeUtf8ToWide(path).c_str(),
+            TranscodeUtf8ToWide(path).data(),
             FILE_APPEND_DATA | SYNCHRONIZE, // 追記権限と同期フラグを指定
             FILE_SHARE_READ,
             nullptr,
@@ -56,7 +56,7 @@ namespace N503::Diagnostics
 
         for (const auto& entry : entries)
         {
-            auto line = entry.ToString() + "\r\n";
+            auto line = entry.ToString() + L"\r\n";
 
             DWORD bytesWritten = 0;
             ::WriteFile(m_Handle.get(), line.data(), static_cast<DWORD>(line.size()), &bytesWritten, nullptr);

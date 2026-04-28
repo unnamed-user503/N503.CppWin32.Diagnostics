@@ -15,7 +15,18 @@ namespace N503::Diagnostics
 
     Reporter::Reporter()
     {
-        m_Thread = std::jthread([this](std::stop_token stopToken) { Run(stopToken); });
+        m_Thread = std::jthread(
+            [this](std::stop_token stopToken)
+            {
+                try
+                {
+                    Run(stopToken);
+                }
+                catch (...)
+                {
+                }
+            }
+        );
     }
 
     Reporter::~Reporter()
@@ -37,6 +48,11 @@ namespace N503::Diagnostics
     {
         {
             std::lock_guard lock(m_Mutex);
+
+            if (!m_PendingEntries.empty())
+            {
+                return;
+            }
 
             auto newEntries = sink.DrainEntries();
             m_PendingEntries.insert(m_PendingEntries.end(), std::make_move_iterator(newEntries.begin()), std::make_move_iterator(newEntries.end()));
@@ -77,8 +93,8 @@ namespace N503::Diagnostics
                 }
 
                 workingEntries = std::move(m_PendingEntries);
-                targetSinks = m_Sinks;
-                m_Ready = false;
+                targetSinks    = m_Sinks;
+                m_Ready        = false;
             }
 
             if (workingEntries.empty())

@@ -27,7 +27,7 @@ namespace N503::Diagnostics
 
         for (const auto& entry : entries)
         {
-            auto& outputStream = (entry.Severity == Diagnostics::Severity::Error) ? std::cerr : std::cout;
+            auto& outputStream = (entry.Severity == Diagnostics::Severity::Error) ? std::wcerr : std::wcout;
 
             outputStream << entry.ToString() << std::endl;
         }
