@@ -35,19 +35,29 @@ namespace N503::Diagnostics
 
         virtual auto FormatEntry(const Entry& entry) -> std::wstring
         {
+            std::wstring message;
+
             switch (entry.Severity)
             {
                 case Severity::Verbose:
-                    return std::format(L"[Verbose]{}({})", entry.Expected, entry.Position);
+                    message = std::format(L"[Verbose] {}", entry.Expected);
+                    break;
 
                 case Severity::Warning:
-                    return std::format(L"[Warning]{}({})", entry.Expected, entry.Position);
+                    message = std::format(L"[Warning] {}", entry.Expected);
+                    break;
 
                 case Severity::Error:
-                    return std::format(L"[Error]{}({})", entry.Expected, entry.Position);
+                    message = std::format(L"[Error] {}", entry.Expected);
+                    break;
             }
 
-            return {};
+            if (entry.Position)
+            {
+                message += L" (" + std::to_wstring(entry.Position) + L")";
+            }
+
+            return message;
         }
     };
 
