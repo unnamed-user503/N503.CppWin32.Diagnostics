@@ -1,29 +1,81 @@
 #include "Pch.hpp"
-#include <N503/Diagnostics/Entry.hpp>
+#include "Reporter_Entity.hpp"
+
+// 1. Project Headers
+
+// 2. Project Dependencies
 #include <N503/Diagnostics/Reporter.hpp>
 #include <N503/Diagnostics/Sink.hpp>
-#include <iterator>
+#include <N503/Diagnostics/Types.hpp>
+
+// 3. WIL (Windows Implementation Library)
+
+// 4. Third-party Libraries
+
+// 5. Windows Headers
+
+// 6. C++ Standard Libraries
 #include <memory>
 #include <mutex>
-#include <stop_token>
-#include <thread>
-#include <utility>
-#include <vector>
 
 namespace N503::Diagnostics
 {
-
-    Reporter::Reporter()
+    namespace
     {
-        m_Thread = std::jthread(
-            [this](std::stop_token stopToken)
+        auto TranscodeUtf8ToWide(const std::string_view utf8) -> std::wstring
+        {
+            if (utf8.empty())
             {
-                try
+                return {};
+            }
+
+            int desired = ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), -1, nullptr, 0);
+            if (desired == 0)
+            {
+                return {};
+            }
+
+            std::wstring result(desired, 0);
+            ::MultiByteToWideChar(CP_UTF8, 0, utf8.data(), -1, &result[0], desired);
+
+            result.resize(desired - 1);
+            return result;
+        }
+    } // namespace
+
+    Reporter::Reporter() : m_Entity(std::make_unique<Entity>())
+    {
+        m_Entity->WorkerThread = std::jthread(
+            [this](const std::stop_token stopToken)
+            {
+                while (!stopToken.stop_requested())
                 {
-                    Run(stopToken);
-                }
-                catch (...)
-                {
+                    std::vector<Diagnostics::Entry> entriesToReport;
+                    {
+                        // ログが届くか停止を要求されるまで待機 (CPU負荷 0%)
+                        std::unique_lock lock(m_Entity->Mutex);
+                        m_Entity->ConditionVariable.wait(lock, stopToken, [this] { return !m_Entity->Entries.empty(); });
+
+                        if (stopToken.stop_requested() && m_Entity->Entries.empty())
+                        {
+                            break;
+                        }
+
+                        // バッファをスワップして、ロックを即座に抜ける
+                        // entriesToReport へ move することで、ロック時間を最小化
+                        entriesToReport = std::move(m_Entity->Entries);
+                        m_Entity->Entries.clear();
+                    }
+
+                    // ロックの外側で、登録されたすべてのSinkに対して一括レポートを実行
+                    // ここで重い I/O が発生しても Submit を妨げない
+                    if (!entriesToReport.empty())
+                    {
+                        for (const auto& sink : m_Entity->Sinks)
+                        {
+                            sink->Report(entriesToReport);
+                        }
+                    }
                 }
             }
         );
@@ -31,89 +83,47 @@ namespace N503::Diagnostics
 
     Reporter::~Reporter()
     {
+        m_Entity->WorkerThread.request_stop();
+
+        if (m_Entity->WorkerThread.joinable())
         {
-            std::lock_guard lock(m_Mutex);
-            m_Ready = true;
-        }
-        m_ConditionVariable.notify_all();
-    }
-
-    auto Reporter::AddSink(std::shared_ptr<Sink> sink) -> void
-    {
-        std::lock_guard lock(m_Mutex);
-        m_Sinks.push_back(std::move(sink));
-    }
-
-    auto Reporter::Submit(Sink& sink) -> void
-    {
-        {
-            std::lock_guard lock(m_Mutex);
-
-            if (!m_PendingEntries.empty())
-            {
-                return;
-            }
-
-            auto newEntries = sink.DrainEntries();
-            m_PendingEntries.insert(m_PendingEntries.end(), std::make_move_iterator(newEntries.begin()), std::make_move_iterator(newEntries.end()));
-
-            m_Ready = true;
-        }
-        m_ConditionVariable.notify_one();
-    }
-
-    auto Reporter::Stop() -> void
-    {
-        m_Thread.request_stop();
-    }
-
-    auto Reporter::Wait() -> void
-    {
-        if (m_Thread.joinable())
-        {
-            m_Thread.join();
+            m_Entity->WorkerThread.join();
         }
     }
 
-    auto Reporter::Run(std::stop_token stopToken) -> void
+    auto Reporter::AddSink(std::unique_ptr<Sink> sink) -> void
     {
-        while (true)
-        {
-            std::vector<Entry> workingEntries;
-            std::vector<std::shared_ptr<Sink>> targetSinks;
-
-            {
-                std::unique_lock lock(m_Mutex);
-
-                m_ConditionVariable.wait(lock, [&] { return m_Ready || stopToken.stop_requested(); });
-
-                if (stopToken.stop_requested() && m_PendingEntries.empty())
-                {
-                    break;
-                }
-
-                workingEntries = std::move(m_PendingEntries);
-                targetSinks    = m_Sinks;
-                m_Ready        = false;
-            }
-
-            if (workingEntries.empty())
-            {
-                continue;
-            }
-
-            for (const auto& sink : targetSinks)
-            {
-                try
-                {
-                    sink->Report(workingEntries);
-                }
-                catch (...)
-                {
-                    /// @note 特定のSinkで発生した例外が、他のSinkへの配信やシステム全体を停止させないよう保護します。
-                }
-            }
-        }
+        m_Entity->Sinks.push_back(std::move(sink));
     }
+
+    auto Reporter::Report() -> void
+    {
+        m_Entity->ConditionVariable.notify_one();
+    }
+
+    auto Reporter::Submit(Diagnostics::Entry&& entry) -> void
+    {
+        std::scoped_lock lock(m_Entity->Mutex);
+        m_Entity->Entries.push_back(std::move(entry));
+    }
+
+    auto Reporter::Verbose(std::string_view expected, std::size_t position) -> void
+    {
+        Submit({ Diagnostics::Severity::Verbose, TranscodeUtf8ToWide(expected), position });
+    }
+
+    auto Reporter::Warning(std::string_view expected, std::size_t position) -> void
+    {
+        Submit({ Diagnostics::Severity::Warning, TranscodeUtf8ToWide(expected), position });
+    }
+
+    auto Reporter::Error(std::string_view expected, std::size_t position) -> void
+    {
+        Submit({ Diagnostics::Severity::Error, TranscodeUtf8ToWide(expected), position });
+    }
+
+    Reporter::Reporter(Reporter&&) noexcept = default;
+
+    auto Reporter::operator=(Reporter&&) noexcept -> Reporter& = default;
 
 } // namespace N503::Diagnostics

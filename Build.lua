@@ -1,5 +1,5 @@
 project "N503.CppWin32.Diagnostics"
-    kind          "StaticLib" -- ConsoleApp WindowedApp SharedLib StaticLib
+    kind          "SharedLib" -- ConsoleApp WindowedApp SharedLib StaticLib
     language      "C++"
     cppdialect    "C++20"
     staticruntime "off"
@@ -23,6 +23,11 @@ project "N503.CppWin32.Diagnostics"
         "Microsoft.Windows.ImplementationLibrary:1.0.260126.7",
     }
 
+    defines
+    {
+        "N503_DLL_EXPORTS",
+    }
+
     files
     {
         "Include/**.hpp", "Source/**.cpp", "Source/**.hpp",
@@ -35,6 +40,7 @@ project "N503.CppWin32.Diagnostics"
 
     links
     {
+        "N503.CppWin32.Abi",
     }
 
     prebuildcommands
