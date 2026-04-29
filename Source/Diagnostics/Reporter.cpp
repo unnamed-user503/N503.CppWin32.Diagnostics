@@ -48,6 +48,8 @@ namespace N503::Diagnostics
         m_Entity->WorkerThread = std::jthread(
             [this](const std::stop_token stopToken)
             {
+                ::SetThreadDescription(::GetCurrentThread(), L"N503.CppWin32.Diagnostics");
+
                 while (!stopToken.stop_requested())
                 {
                     std::vector<Diagnostics::Entry> entriesToReport;
@@ -63,8 +65,7 @@ namespace N503::Diagnostics
                         }
 
                         // エントリをローカルに移動して、ロックを解放
-                        entriesToReport = std::move(m_Entity->Entries);
-                        m_Entity->Entries.clear();
+                        m_Entity->Entries.swap(entriesToReport);
                     }
 
                     // エントリがある場合は、すべてのシンクに報告
