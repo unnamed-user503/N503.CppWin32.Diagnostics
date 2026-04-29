@@ -16,6 +16,9 @@
 #include <format>
 #include <iostream>
 #include <string>
+#include <filesystem>
+#include <fstream>
+#include <vector>
 
 namespace N503::Diagnostics
 {
@@ -86,45 +89,33 @@ namespace N503::Diagnostics
     class FileSink : public Sink
     {
     public:
-        explicit FileSink(const std::wstring& path)
+        explicit FileSink(const std::filesystem::path& path)
         {
-            m_Handle = ::CreateFileW(
-                path.data(),
-                FILE_APPEND_DATA | SYNCHRONIZE, // 追記権限と同期フラグを指定
-                FILE_SHARE_READ,
-                nullptr,
-                OPEN_ALWAYS,
-                FILE_ATTRIBUTE_NORMAL,
-                nullptr
-            );
+            // std::ios::app で追記モードを指定
+            m_FileStream.open(path, std::ios::out | std::ios::app);
         }
 
-        ~FileSink()
-        {
-            if (m_Handle != INVALID_HANDLE_VALUE)
-            {
-                ::CloseHandle(m_Handle);
-            }
-        }
+        virtual ~FileSink() override = default;
 
         auto Report(const std::vector<Entry>& entries) -> void override
         {
-            if (m_Handle == INVALID_HANDLE_VALUE)
+            if (!m_FileStream.is_open())
             {
                 return;
             }
 
             for (const auto& entry : entries)
             {
-                auto message = FormatEntry(entry);
-
-                DWORD bytesWritten = 0;
-                ::WriteFile(m_Handle, message.data(), static_cast<DWORD>(message.size() * sizeof(wchar_t)), &bytesWritten, nullptr);
+                // wofstream を使用してワイド文字列を直接書き込み
+                m_FileStream << FormatEntry(entry) << std::endl;
             }
+            
+            // バッファを確実にフラッシュ
+            m_FileStream.flush();
         }
 
     private:
-        HANDLE m_Handle{ INVALID_HANDLE_VALUE };
+        std::wofstream m_FileStream;
     };
 
 } // namespace N503::Diagnostics
