@@ -52,23 +52,22 @@ namespace N503::Diagnostics
                 {
                     std::vector<Diagnostics::Entry> entriesToReport;
                     {
-                        // ログが届くか停止を要求されるまで待機 (CPU負荷 0%)
+                        // エントリが追加されるのを待つ
                         std::unique_lock lock(m_Entity->Mutex);
                         m_Entity->ConditionVariable.wait(lock, stopToken, [this] { return !m_Entity->Entries.empty(); });
 
+                        // 停止要求があり、かつエントリが空の場合はループを抜ける
                         if (stopToken.stop_requested() && m_Entity->Entries.empty())
                         {
                             break;
                         }
 
-                        // バッファをスワップして、ロックを即座に抜ける
-                        // entriesToReport へ move することで、ロック時間を最小化
+                        // エントリをローカルに移動して、ロックを解放
                         entriesToReport = std::move(m_Entity->Entries);
                         m_Entity->Entries.clear();
                     }
 
-                    // ロックの外側で、登録されたすべてのSinkに対して一括レポートを実行
-                    // ここで重い I/O が発生しても Submit を妨げない
+                    // エントリがある場合は、すべてのシンクに報告
                     if (!entriesToReport.empty())
                     {
                         for (const auto& sink : m_Entity->Sinks)
